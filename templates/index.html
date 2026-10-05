@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DigitalGuard — Addiction Risk Predictor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-mark">DG</div>
+            <div>
+                <h1>DigitalGuard</h1>
+                <span>ML Risk Predictor</span>
+            </div>
+        </div>
+        <nav>
+            <button class="nav-btn active" data-section="predictor">◈ <span>Predictor</span></button>
+            <button class="nav-btn" data-section="history">◷ <span>History</span></button>
+            <button class="nav-btn" data-section="about">ⓘ <span>About Model</span></button>
+        </nav>
+        <div class="side-card">
+            <div class="mini-label">MODEL</div>
+            <strong>Binary Logistic Regression</strong>
+            <p>StandardScaler + Logistic Regression</p>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <div class="eyebrow">DIGITAL WELLBEING</div>
+                <h2>Digital Addiction Risk Predictor</h2>
+                <p class="subtitle">Measure usage patterns and estimate digital addiction risk.</p>
+            </div>
+            <div class="accuracy-pill">
+                <span>Model accuracy</span>
+                <strong>{{ accuracy }}%</strong>
+            </div>
+        </header>
+
+        <section id="predictor" class="section active">
+            <div class="grid">
+                <div class="panel form-panel">
+                    <div class="panel-head">
+                        <div>
+                            <h3>Usage Profile</h3>
+                            <p>Enter the person's typical daily usage.</p>
+                        </div>
+                        <button id="demoBtn" class="ghost-btn">Use Demo Data</button>
+                    </div>
+
+                    <form id="predictionForm">
+                        <div class="input-grid">
+                            <label>
+                                Daily Screen Time <span>hours</span>
+                                <input name="daily_screen_time" type="number" min="0" max="24" step="0.1" placeholder="e.g. 7.5" required>
+                            </label>
+                            <label>
+                                Social Media Hours <span>hours</span>
+                                <input name="social_media_hours" type="number" min="0" max="24" step="0.1" placeholder="e.g. 3.2" required>
+                            </label>
+                            <label>
+                                Gaming Hours <span>hours</span>
+                                <input name="gaming_hours" type="number" min="0" max="24" step="0.1" placeholder="e.g. 1.5" required>
+                            </label>
+                            <label>
+                                Night-time Phone Usage <span>hours</span>
+                                <input name="night_phone_usage" type="number" min="0" max="24" step="0.1" placeholder="e.g. 2.0" required>
+                            </label>
+                            <label>
+                                Sleep Hours <span>hours</span>
+                                <input name="sleep_hours" type="number" min="0" max="24" step="0.1" placeholder="e.g. 6.5" required>
+                            </label>
+                            <label>
+                                Notifications Per Day <span>count</span>
+                                <input name="notifications_per_day" type="number" min="0" max="5000" step="1" placeholder="e.g. 120" required>
+                            </label>
+                            <label class="full">
+                                App Opens Per Day <span>count</span>
+                                <input name="app_opens_per_day" type="number" min="0" max="2000" step="1" placeholder="e.g. 85" required>
+                            </label>
+                        </div>
+                        <button class="predict-btn" type="submit">
+                            <span>Predict Risk</span><span>→</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="panel result-panel">
+                    <div class="result-top">
+                        <div>
+                            <div class="panel-kicker">PREDICTION RESULT</div>
+                            <h3 id="resultTitle">Ready to analyze</h3>
+                        </div>
+                        <div id="statusDot" class="status-dot neutral"></div>
+                    </div>
+
+                    <div class="score-ring" id="scoreRing">
+                        <div>
+                            <strong id="score">--%</strong>
+                            <span>risk probability</span>
+                        </div>
+                    </div>
+
+                    <div id="resultMessage" class="result-message">
+                        Complete the usage profile and run the prediction.
+                    </div>
+
+                    <div class="scale">
+                        <div><span class="low"></span> Low</div>
+                        <div><span class="moderate"></span> Moderate</div>
+                        <div><span class="high"></span> High</div>
+                    </div>
+
+                    <div class="disclaimer">
+                        <strong>Note:</strong> This is an educational ML prediction, not a medical diagnosis.
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-row">
+                <div class="stat-card">
+                    <span>Total predictions</span>
+                    <strong id="totalStat">0</strong>
+                </div>
+                <div class="stat-card">
+                    <span>High-risk predictions</span>
+                    <strong id="highStat">0</strong>
+                </div>
+                <div class="stat-card">
+                    <span>Average risk probability</span>
+                    <strong id="avgStat">0%</strong>
+                </div>
+                <div class="stat-card">
+                    <span>Storage</span>
+                    <strong>SQLite</strong>
+                </div>
+            </div>
+        </section>
+
+        <section id="history" class="section">
+            <div class="section-head">
+                <div>
+                    <div class="eyebrow">LOCAL DATABASE</div>
+                    <h3>Prediction History</h3>
+                    <p>Every prediction is stored locally in SQLite.</p>
+                </div>
+                <button id="clearHistory" class="danger-btn">Clear History</button>
+            </div>
+            <div class="panel table-panel">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Date</th><th>Screen</th><th>Social</th><th>Gaming</th>
+                            <th>Sleep</th><th>Notifications</th><th>Apps</th><th>Result</th><th>Probability</th>
+                        </tr>
+                        </thead>
+                        <tbody id="historyBody"></tbody>
+                    </table>
+                </div>
+                <div id="emptyHistory" class="empty">No predictions saved yet.</div>
+            </div>
+        </section>
+
+        <section id="about" class="section">
+            <div class="section-head">
+                <div>
+                    <div class="eyebrow">MODEL DETAILS</div>
+                    <h3>How the application works</h3>
+                </div>
+            </div>
+            <div class="about-grid">
+                <div class="panel about-card">
+                    <span class="about-number">01</span>
+                    <h4>Input</h4>
+                    <p>Seven daily digital-behaviour parameters are collected from the user.</p>
+                </div>
+                <div class="panel about-card">
+                    <span class="about-number">02</span>
+                    <h4>Preprocessing</h4>
+                    <p>StandardScaler normalizes the numeric features before classification.</p>
+                </div>
+                <div class="panel about-card">
+                    <span class="about-number">03</span>
+                    <h4>Prediction</h4>
+                    <p>Binary Logistic Regression estimates the probability of high addiction risk.</p>
+                </div>
+                <div class="panel about-card">
+                    <span class="about-number">04</span>
+                    <h4>Storage</h4>
+                    <p>Prediction results are stored locally in a SQLite database and displayed in History.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
